@@ -1,0 +1,36 @@
+- model: gardenspace.plant
+  fields:
+    common_name: Shiso
+    scientific_name: Perilla frutescens
+- model: gardenspace.plant
+  fields:
+    common_name: Sugar Snap Pea
+    scientific_name: Pisum sativum
+- model: gardenspace.plant
+  fields:
+    common_name: Sugar Magnolia Snap Pea
+    scientific_name: Pisum sativum var. macrocarpum
+- model: gardenspace.plant
+  fields:
+    common_name: Burgundy Broccoli
+    scientific_name: Brassica oleracea var. italica (hybrid)
+- model: gardenspace.plant
+  fields:
+    common_name: Snowball Y Cauliflower
+    scientific_name: Brassica oleracea var. botrytis
+- model: gardenspace.plant
+  fields:
+    common_name: Charentais Cantaloupe Melon
+    scientific_name: Cucumis melo
+- model: gardenspace.plant
+  fields:
+    common_name: Blue Lake 274 Bush Bean
+    scientific_name: Phaseolus vulgaris
+- model: gardenspace.plant
+  fields:
+    common_name: Chiba Green Edamame
+    scientific_name: Glycine max
+- model: gardenspace.plant
+  fields:
+    common_name: Celebration Swiss Chard
+    scientific_name: Beta vulgaris subsp. vulgaris
