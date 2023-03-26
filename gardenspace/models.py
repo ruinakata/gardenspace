@@ -30,7 +30,15 @@ class Location(models.Model):
 	user = models.ForeignKey(User, null=False, on_delete=models.CASCADE)
 	square_footage = models.IntegerField(blank=True, null=True)
 	active = models.BooleanField(default=True)
-	my_plants = models.ManyToManyField(MyPlant, related_name='locations', blank=True)
+	# my_plants = models.ManyToManyField(MyPlant, related_name='locations', blank=True)
 
 	def __str__(self):
 		return self.name
+
+class LocationMyPlant(models.Model):
+	location = models.ForeignKey(Location, null=False, on_delete=models.CASCADE)
+	my_plant = models.ForeignKey(MyPlant, null=False, on_delete=models.CASCADE)
+
+	class Meta:
+		ordering = ['id']
+		# db_table = 'gardenspace_location_my_plants'
