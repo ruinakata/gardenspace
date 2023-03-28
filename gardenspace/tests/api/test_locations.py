@@ -1,6 +1,6 @@
 from django.test import TestCase
 from rest_framework.test import APIClient
-from gardenspace.models import Plant, MyPlant, User, Location
+from gardenspace.models import Plant, MyPlant, User, Location, LocationMyPlant
 
 
 class MyPlantsTest(TestCase):
@@ -40,13 +40,38 @@ class MyPlantsTest(TestCase):
         response = self.client.post('/locations/', body)
         self.assertEqual(response.status_code, 400, "error: {}".format(response.data))
 
-    # def test_add_my_plant_to_location(self):
-    #     location_1 = Location.objects.create(user=self.user, name='raised bed 1')
-    #     body = {
-    #         'my_plant': "/my_plants/{}".format(self.my_plant_1.id)
-    #     }
-    #     response = self.client.post("/locations/{}/my_plants/".format(location_1.id), body)
-    #     # import pdb 
-    #     # pdb.set_trace()
-    #     self.assertEqual(response.status_code, 201, "error: {}".format(response.data))
+    def test_post_location_myplants_success(self):
+        location_1 = Location.objects.create(user=self.user, name='raised bed 1')
+        body = {
+            "location": "/locations/{}/".format(location_1.id),
+            "my_plant": "/my_plants/{}/".format(self.my_plant_1.id)
+        }
+        response = self.client.post("/location_my_plants/", body)
+        self.assertEqual(response.status_code, 201, "error: {}".format(response.data))
+
+    def test_post_location_myplants_should_error_when_user_mismatch(self):
+        user_2 = User.objects.create(username='user2', password='pass2')
+        user_2_location = Location.objects.create(user=user_2, name='veggie garden')
+        body = {
+            "location": "/locations/{}/".format(user_2_location.id),
+            "my_plant": "/my_plants/{}/".format(self.my_plant_1.id)
+        }
+        response = self.client.post("/location_my_plants/", body)
+        self.assertEqual(response.status_code, 400, "error: {}".format(response.data))
+
+    def test_post_location_myplants_should_transplant_if_my_plant_already_planted(self):
+        location_1 = Location.objects.create(user=self.user, name='raised bed 1')
+        location_my_plant = LocationMyPlant.objects.create(location=location_1, my_plant=self.my_plant_1)
+        location_2 = Location.objects.create(user=self.user, name='raised bed 2')
+        body = {
+            "location": "/locations/{}/".format(location_2.id),
+            "my_plant": "/my_plants/{}/".format(self.my_plant_1.id)
+        }
+        response = self.client.post("/location_my_plants/", body)
+        self.assertEqual(response.status_code, 201, "error: {}".format(response.data))
+        locations_for_my_plant = LocationMyPlant.objects.filter(my_plant=self.my_plant_1).filter(active=True)
+        self.assertEqual(locations_for_my_plant.count(), 1)
+
+    # def test_delete_location_myplants_success(self):
+    #     pass
 

@@ -1,8 +1,10 @@
 from django.contrib.auth.models import User, Group
-from gardenspace.models import Plant, MyPlant, Location
+from gardenspace.models import Plant, MyPlant, Location, LocationMyPlant
 from gardenspace.serializers import UserSerializer, GroupSerializer, PlantSerializer, MyPlantSerializer, LocationSerializer, LocationMyPlantSerializer
 from rest_framework import viewsets
+from rest_framework import mixins
 from rest_framework import permissions
+from rest_framework import generics
 
 
 class UserViewSet(viewsets.ModelViewSet):
@@ -58,24 +60,20 @@ class LocationViewSet(viewsets.ModelViewSet):
 		return queryset
 
 
-class LocationMyPlantViewSet(viewsets.ModelViewSet):
+class LocationMyPlantView(generics.CreateAPIView):
 	"""
 	API endpoint that allows my_plants to be added or removed from a location.
 	"""
-
-	queryset = MyPlant.objects.all()
+	queryset = LocationMyPlant.objects.all()
 	serializer_class = LocationMyPlantSerializer
 	permission_classes = [permissions.IsAuthenticated]
 
-	# def get_queryset(self):
-	# 	import pdb 
-	# 	pdb.set_trace()
-
-	# def create(self, request, *args, **kwargs):
-	# 	# request.data['location_id'] = kwargs.get('location_pk')
-
-	# 	serializer = self.get_serializer(data=request.data)
-	# 	serializer.is_valid(raise_exception=True)
-	# 	self.perform_create(serializer)
-	# 	headers = self.get_success_headers(serializer.data)
-	# 	return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+	def perform_create(self, serializer):
+		my_plant = serializer.validated_data['my_plant']
+		location = serializer.validated_data['location']
+		location_my_plant_duplicates = LocationMyPlant.objects.all().filter(my_plant=my_plant, location=location, active=True)
+		if location_my_plant_duplicates.count() > 0:
+			for location_my_plant in location_my_plant_duplicates:
+				location_my_plant.active = False
+				location_my_plant.save()
+		serializer.save()
