@@ -3,20 +3,16 @@ from rest_framework.test import APIClient
 from gardenspace.models import Plant, MyPlant, User, Location, LocationMyPlant
 
 
-class MyPlantsTest(TestCase):
+class LocationsTest(TestCase):
 
     def setUp(self):
         self.user = User.objects.create(username='user1', password='pass')
         self.client = APIClient()
         self.client.force_authenticate(user=self.user)
-        self.plant_1 = Plant.objects.create(common_name='shiso', scientific_name='Perilla frutescens')
-        self.plant_2 = Plant.objects.create(common_name='sugar snap pea', scientific_name='Pisum sativum')
-        self.my_plant_1 = MyPlant.objects.create(plant_id=self.plant_1.id, state='unplanted', user_id=self.user.id)
-        self.my_plant_2 = MyPlant.objects.create(plant_id=self.plant_1.id, state='unplanted', user_id=self.user.id)
 
     def test_get_locations_only_returns_for_user(self):
-        user_2 = User.objects.create(username='user2', password='pass2')
         location_1 = Location.objects.create(user=self.user, name='raised bed 1')
+        user_2 = User.objects.create(username='user2', password='pass2')
         location_2 = Location.objects.create(user=user_2, name='flower garden')
         response = self.client.get('/locations/')
         self.assertEqual(response.status_code, 200, "error: {}".format(response.data))
@@ -40,38 +36,20 @@ class MyPlantsTest(TestCase):
         response = self.client.post('/locations/', body)
         self.assertEqual(response.status_code, 400, "error: {}".format(response.data))
 
-    def test_post_location_myplants_success(self):
+    def test_put_locations_success(self):
         location_1 = Location.objects.create(user=self.user, name='raised bed 1')
         body = {
-            "location": "/locations/{}/".format(location_1.id),
-            "my_plant": "/my_plants/{}/".format(self.my_plant_1.id)
+            'name': 'revised raised bed'
         }
-        response = self.client.post("/location_my_plants/", body)
-        self.assertEqual(response.status_code, 201, "error: {}".format(response.data))
+        response = self.client.put("/locations/{}/".format(location_1.id), body)
+        self.assertEqual(response.status_code, 200, "error: {}".format(response.data))
 
-    def test_post_location_myplants_should_error_when_user_mismatch(self):
+    def test_put_locations_only_allowed_for_user_owned_locations(self):
         user_2 = User.objects.create(username='user2', password='pass2')
-        user_2_location = Location.objects.create(user=user_2, name='veggie garden')
+        location_2 = Location.objects.create(user=user_2, name='raised bed 1')
         body = {
-            "location": "/locations/{}/".format(user_2_location.id),
-            "my_plant": "/my_plants/{}/".format(self.my_plant_1.id)
+            'name': 'revised raised bed'
         }
-        response = self.client.post("/location_my_plants/", body)
-        self.assertEqual(response.status_code, 400, "error: {}".format(response.data))
-
-    def test_post_location_myplants_should_transplant_if_my_plant_already_planted(self):
-        location_1 = Location.objects.create(user=self.user, name='raised bed 1')
-        location_my_plant = LocationMyPlant.objects.create(location=location_1, my_plant=self.my_plant_1)
-        location_2 = Location.objects.create(user=self.user, name='raised bed 2')
-        body = {
-            "location": "/locations/{}/".format(location_2.id),
-            "my_plant": "/my_plants/{}/".format(self.my_plant_1.id)
-        }
-        response = self.client.post("/location_my_plants/", body)
-        self.assertEqual(response.status_code, 201, "error: {}".format(response.data))
-        locations_for_my_plant = LocationMyPlant.objects.filter(my_plant=self.my_plant_1).filter(active=True)
-        self.assertEqual(locations_for_my_plant.count(), 1)
-
-    # def test_delete_location_myplants_success(self):
-    #     pass
+        response = self.client.put("/locations/{}/".format(location_2.id), body)
+        self.assertEqual(response.status_code, 404, "error: {}".format(response.data))
 

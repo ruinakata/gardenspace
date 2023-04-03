@@ -60,13 +60,16 @@ class LocationViewSet(viewsets.ModelViewSet):
 		return queryset
 
 
-class LocationMyPlantView(generics.CreateAPIView):
+class LocationMyPlantCreateView(mixins.CreateModelMixin, generics.GenericAPIView):
 	"""
-	API endpoint that allows my_plants to be added or removed from a location.
+	API endpoint that allows a my_plant to be added from a location.
 	"""
 	queryset = LocationMyPlant.objects.all()
 	serializer_class = LocationMyPlantSerializer
 	permission_classes = [permissions.IsAuthenticated]
+
+	def post(self, request, *args, **kwargs):
+		return self.create(request, *args, **kwargs)
 
 	def perform_create(self, serializer):
 		my_plant = serializer.validated_data['my_plant']
@@ -77,3 +80,24 @@ class LocationMyPlantView(generics.CreateAPIView):
 				location_my_plant.active = False
 				location_my_plant.save()
 		serializer.save()
+
+
+class LocationMyPlantDeleteView(mixins.DestroyModelMixin, generics.GenericAPIView):
+	"""
+	API endpoint that allows a my_plant to be deleted from a location.
+	"""
+	queryset = LocationMyPlant.objects.all()
+	serializer_class = LocationMyPlantSerializer
+	permission_classes = [permissions.IsAuthenticated]
+	
+	def get_queryset(self):
+		queryset = LocationMyPlant.objects.all().filter(location__user_id=self.request.user.id)
+		return queryset
+
+	def delete(self, request, *args, **kwargs):
+		return self.destroy(request, *args, **kwargs)
+
+	def perform_destroy(self, instance):
+		instance.active = False
+		instance.save()
+
