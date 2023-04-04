@@ -36,6 +36,16 @@ class LocationsTest(TestCase):
         response = self.client.post('/locations/', body)
         self.assertEqual(response.status_code, 400, "error: {}".format(response.data))
 
+    def test_post_locations_duplicate_name_for_different_users_should_succeed(self):
+        user_2 = User.objects.create(username='user2', password='pass2')
+        location_1 = Location.objects.create(user=user_2, name='raised bed 1')
+        body = {
+            'name': location_1.name
+        }
+        response = self.client.post('/locations/', body)
+        self.assertEqual(response.status_code, 201, "error: {}".format(response.data))
+
+
     def test_put_locations_success(self):
         location_1 = Location.objects.create(user=self.user, name='raised bed 1')
         body = {
@@ -52,4 +62,11 @@ class LocationsTest(TestCase):
         }
         response = self.client.put("/locations/{}/".format(location_2.id), body)
         self.assertEqual(response.status_code, 404, "error: {}".format(response.data))
+
+    def test_get_locations_should_only_return_active(self):
+        location_1 = Location.objects.create(user=self.user, name='raised bed 1', active=True)
+        location_2 = Location.objects.create(user=self.user, name='raised bed 2', active=False)
+        response = self.client.get('/locations/')
+        self.assertEqual(response.status_code, 200, "error: {}".format(response.data))
+        self.assertEqual(response.data['count'], 1, "response should only include active locations")
 

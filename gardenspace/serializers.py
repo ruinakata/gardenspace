@@ -71,7 +71,7 @@ class LocationMyPlantSerializer(serializers.HyperlinkedModelSerializer):
     https://www.django-rest-framework.org/api-guide/validators/#currentuserdefault
     '''
     user = serializers.HiddenField(default=serializers.CurrentUserDefault())
-    location = serializers.HyperlinkedRelatedField(view_name='location-detail', queryset=Location.objects.all())
+    location = serializers.HyperlinkedRelatedField(view_name='location-detail', queryset=Location.objects.filter(active=True))
     my_plant = serializers.HyperlinkedRelatedField(view_name='myplant-detail', queryset=MyPlant.objects.all())
 
     class Meta:
