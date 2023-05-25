@@ -59,6 +59,19 @@ class LocationViewSet(viewsets.ModelViewSet):
 		queryset = Location.objects.filter(user_id=self.request.user.id, active=True).order_by('id')
 		return queryset
 
+class LocationMyPlantListView(generics.ListAPIView):
+	"""
+	API endpoint that returns a list of my_plants for a location
+	"""
+	queryset = LocationMyPlant.objects.all()
+	serializer_class = LocationMyPlantSerializer
+	permission_classes = [permissions.IsAuthenticated]
+
+	def get_queryset(self):
+		location_id = self.kwargs['pk']
+		queryset = LocationMyPlant.objects.filter(active=True, location=location_id, location__user_id=self.request.user.id)
+		return queryset
+
 
 class LocationMyPlantCreateView(mixins.CreateModelMixin, generics.GenericAPIView):
 	"""

@@ -23,5 +23,6 @@ urlpatterns = [
     path('', include(router.urls)),
     path('location_my_plants/', views.LocationMyPlantCreateView.as_view()),
     path('location_my_plants/<int:pk>/', views.LocationMyPlantDeleteView.as_view()),
+    path('locations/<int:pk>/my_plants/', views.LocationMyPlantListView.as_view()),
     path('api-auth/', include('rest_framework.urls', namespace='rest_framework'))
 ]

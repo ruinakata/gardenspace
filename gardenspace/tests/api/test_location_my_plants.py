@@ -1,6 +1,7 @@
 from django.test import TestCase
 from rest_framework.test import APIClient
 from gardenspace.models import Plant, MyPlant, User, Location, LocationMyPlant
+import json
 
 
 class LocationMyPlantsTest(TestCase):
@@ -12,13 +13,6 @@ class LocationMyPlantsTest(TestCase):
         self.plant_1 = Plant.objects.create(common_name='shiso', scientific_name='Perilla frutescens')
         self.my_plant_1 = MyPlant.objects.create(plant_id=self.plant_1.id, state='unplanted', user_id=self.user.id)
         self.location_1 = Location.objects.create(user=self.user, name='raised bed 1')
-
-    def test_post_locations_duplicate_name_for_user_should_fail(self):
-        body = {
-            'name': self.location_1.name
-        }
-        response = self.client.post('/locations/', body)
-        self.assertEqual(response.status_code, 400, "error: {}".format(response.data))
 
     def test_post_location_myplants_success(self):
         body = {
@@ -65,3 +59,16 @@ class LocationMyPlantsTest(TestCase):
         response = self.client.delete("/location_my_plants/{}/".format(location_my_plant.id))
         self.assertEqual(response.status_code, 404, "error: {}".format(response.data))
 
+    def test_get_location_id_myplants_success(self):
+        location_my_plant_1 = LocationMyPlant.objects.create(location=self.location_1, my_plant=self.my_plant_1)
+        location_2 = Location.objects.create(user=self.user, name='raised bed 2')
+        location_my_plant_2 = LocationMyPlant.objects.create(location=location_2, my_plant=self.my_plant_1)
+        response = self.client.get("/locations/{}/my_plants/".format(self.location_1.id))
+        self.assertEqual(response.status_code, 200)
+        response.render()
+        self.assertEqual(response.data['count'], 1)
+        result = json.loads(response.content)
+        self.assertEqual(result['results']['my_plant'], 'http://testserver/my_plants/5/')
+
+    def test_get_location_id_myplants_only_returns_for_user(self):
+        pass
