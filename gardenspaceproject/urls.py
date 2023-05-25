@@ -18,12 +18,11 @@ router.register(r'plants', views.PlantViewSet)
 router.register(r'my_plants', views.MyPlantViewSet)
 router.register(r'locations', views.LocationViewSet)
 
-locations_my_plants_router = routers.NestedSimpleRouter(router, r'locations', lookup='my_plants')
-locations_my_plants_router.register(r'my_plants', views.MyPlantViewSet)
-
 urlpatterns = [
     path('admin/', admin.site.urls),    
     path('', include(router.urls)),
-    path('', include(locations_my_plants_router.urls)),
+    path('location_my_plants/', views.LocationMyPlantCreateView.as_view()),
+    path('location_my_plants/<int:pk>/', views.LocationMyPlantDeleteView.as_view()),
+    path('locations/<int:pk>/my_plants/', views.LocationMyPlantListView.as_view()),
     path('api-auth/', include('rest_framework.urls', namespace='rest_framework'))
 ]
